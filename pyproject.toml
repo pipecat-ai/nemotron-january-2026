@@ -45,9 +45,9 @@ dev = [
 modal = [
     "modal>=1.3.0.post1",
 ]
-bot = [
-    "pipecat-ai-cli>=0.1.8",
-]
+# bot = [
+#    "pipecat-ai-cli>=0.1.8",
+# ]
 
 [project.urls]
 Homepage = "https://github.com/yourusername/nemotron-speech"
