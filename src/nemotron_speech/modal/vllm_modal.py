@@ -14,7 +14,7 @@ vllm_image = (
     .uv_pip_install(
         "vllm>=0.12.0",
         "huggingface-hub==0.36.0",
-        "flashinfer-cubin",
+        "flashinfer-cubin==0.5.3",
         "cuda-python==12.8.0",
     )
     .env({
