@@ -25,6 +25,9 @@ dependencies = [
     "aiohttp>=3.9.0",
     "numpy>=1.26.0",
     "loguru>=0.7.0",
+    # Fix for FastAPI/Pydantic compatibility
+    "pydantic>=2.0.0,<3.0.0",
+    "fastapi>=0.109.0,<1.0.0",
     # Pipecat bot dependencies
     "pipecat-ai[silero,openai,cartesia,runner,daily,local-smart-turn-v3,webrtc]==0.0.98",
     # Local Riva TTS
