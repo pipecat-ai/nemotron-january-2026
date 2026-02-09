@@ -50,6 +50,9 @@ env/
 # Claude Code
 .claude/
 
+# Cache
+.cache/
+
 # Lock files (large and platform-specific)
 uv.lock
 
