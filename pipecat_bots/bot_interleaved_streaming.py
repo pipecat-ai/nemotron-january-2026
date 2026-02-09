@@ -150,7 +150,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     # Adaptive mode: streaming for first segment (~370ms TTFB), batch for subsequent (quality)
     tts = MagpieWebSocketTTSService(
         server_url=NVIDIA_TTS_URL,
-        voice="aria",
+        voice="sofia",
         language="en",
         params=MagpieWebSocketTTSService.InputParams(
             language="en",
