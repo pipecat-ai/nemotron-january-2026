@@ -166,8 +166,6 @@ class StreamingMagpieTTS:
 
             audio_codes_lens = torch.full((text.size(0),), 1, device=text.device).long()
             audio_codes_input = audio_codes_bos
-            audio_codes_mask = get_mask_from_lengths(audio_codes_lens)
-
             # Prepare CFG if enabled
             if cfg.use_cfg:
                 dummy_cond, dummy_cond_mask, dummy_add_dec_input, dummy_add_dec_mask, _ = (
@@ -189,7 +187,11 @@ class StreamingMagpieTTS:
             # Main generation loop
             for idx in range(cfg.max_decoder_steps // model.frame_stacking_factor):
                 # Generate next token(s)
-                audio_codes_embedded = model.embed_audio_tokens(audio_codes_input)
+                audio_codes_embedded, audio_codes_embedded_lens = model.embed_audio_tokens(
+                    audio_tokens=audio_codes_input,
+                    audio_tokens_lens=audio_codes_lens,
+                )
+                audio_codes_mask = get_mask_from_lengths(audio_codes_embedded_lens)
 
                 if context_tensors.additional_decoder_input is not None:
                     _audio_codes_embedded = torch.cat(
@@ -272,8 +274,7 @@ class StreamingMagpieTTS:
                 all_predictions.append(audio_codes_next)
                 pending_tokens.append(audio_codes_next)
                 audio_codes_input = torch.cat([audio_codes_input, audio_codes_next], dim=-1)
-                audio_codes_lens = audio_codes_lens + 1
-                audio_codes_mask = get_mask_from_lengths(audio_codes_lens)
+                audio_codes_lens = audio_codes_lens + model.frame_stacking_factor
 
                 # Check if we should decode and yield a chunk
                 total_pending_frames = len(pending_tokens) * model.frame_stacking_factor
@@ -329,7 +330,7 @@ class StreamingMagpieTTS:
                     else:
                         decode_lens = torch.tensor([decode_codes.size(-1)], device=decode_codes.device).long()
 
-                    audio, audio_len = model.codes_to_audio(decode_codes, decode_lens)
+                    audio, audio_len, _ = model.codes_to_audio(decode_codes, decode_lens)
 
                     # Extract new audio (skip overlap region, but preserve some for server-side blending)
                     # The preserved overlap represents the same time period as the previous chunk's tail,
@@ -387,7 +388,7 @@ class StreamingMagpieTTS:
                 else:
                     decode_lens = torch.tensor([decode_codes.size(-1)], device=decode_codes.device).long()
 
-                audio, _ = model.codes_to_audio(decode_codes, decode_lens)
+                audio, _, _ = model.codes_to_audio(decode_codes, decode_lens)
 
                 # Preserve overlap for server-side blending (same as main loop)
                 if overlap_samples > 0:

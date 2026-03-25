@@ -275,7 +275,7 @@ cmd_start() {
         if [[ "$LLM_MODE" == vllm* ]]; then
             SERVICE_TIMEOUT=900
         else
-            SERVICE_TIMEOUT=60
+            SERVICE_TIMEOUT=180
         fi
     fi
 
@@ -318,11 +318,14 @@ cmd_start() {
     echo "============================================"
 
     # Build docker run command
-    # Use host network for vLLM mode to avoid DNS issues with HuggingFace
+    # Use the explicit NVIDIA runtime because some Docker setups expose the GPU
+    # reliably only when --runtime=nvidia is specified alongside --gpus all.
+    # Use host network for vLLM mode to avoid DNS issues with HuggingFace.
     if [[ "$LLM_MODE" == vllm* ]]; then
         DOCKER_ARGS=(
             run
             --name "$CONTAINER_NAME"
+            --runtime=nvidia
             --gpus all
             --network=host
             --ipc=host
@@ -340,6 +343,7 @@ cmd_start() {
         DOCKER_ARGS=(
             run
             --name "$CONTAINER_NAME"
+            --runtime=nvidia
             --gpus all
             --ipc=host
             -v "$PROJECT_DIR:/workspace"

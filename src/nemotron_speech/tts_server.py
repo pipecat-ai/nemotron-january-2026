@@ -75,13 +75,35 @@ async def load_model(model_id: str = "nvidia/magpie_tts_multilingual_357m"):
 
         def _load():
             from nemo.collections.tts.models import MagpieTTSModel
+            from nemo.collections.common.tokenizers.text_to_speech import tts_tokenizers
 
             # Ensure HuggingFace token is set
             hf_token = os.environ.get("HUGGINGFACE_ACCESS_TOKEN") or os.environ.get("HF_TOKEN")
             if hf_token:
                 os.environ["HF_TOKEN"] = hf_token
 
-            model = MagpieTTSModel.from_pretrained(model_id)
+            if not hasattr(tts_tokenizers, "HindiCharsTokenizer"):
+                raise RuntimeError(
+                    "Installed NeMo build is too old for "
+                    f"{model_id}. The multilingual Magpie config expects "
+                    "HindiCharsTokenizer, which was added after the currently "
+                    "pinned NeMo commit. Rebuild the Docker image from the "
+                    "current repo so Dockerfile.unified can install the newer "
+                    "NeMo revision."
+                )
+
+            try:
+                model = MagpieTTSModel.from_pretrained(model_id)
+            except Exception as exc:
+                if "HindiCharsTokenizer" in str(exc):
+                    raise RuntimeError(
+                        "Failed to load Magpie TTS because the installed NeMo "
+                        "build does not provide HindiCharsTokenizer. Rebuild "
+                        "the Docker image from the current repo to pick up the "
+                        "updated NeMo commit in Dockerfile.unified."
+                    ) from exc
+                raise
+
             model = model.cuda()
             model.eval()
             return model

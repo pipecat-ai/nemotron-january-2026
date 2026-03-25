@@ -248,9 +248,9 @@ RUN rm -rf /build/pytorch /build/audio
 # =============================================================================
 # Phase 6: NeMo Installation (ASR + TTS)
 # =============================================================================
-# NeMo - main branch, 2025-12-23
-# Includes MagpieTTS longform support (not in r2.6.0 release)
-ARG NEMO_COMMIT=644201898480ec8c8d0a637f0c773825509ac4dc
+# NeMo - main branch, 2026-01-26
+# Includes HindiCharsTokenizer required by magpie_tts_multilingual_357m.
+ARG NEMO_COMMIT=119593e7bf6e854a2136c3b48b804cae97657a0f
 RUN git clone https://github.com/NVIDIA/NeMo.git /opt/nemo && \
     cd /opt/nemo && git checkout ${NEMO_COMMIT}
 
