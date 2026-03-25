@@ -22,7 +22,7 @@
 #   VLLM_ATTENTION_BACKEND        - Attention backend (default: TRITON_ATTN)
 #
 # General:
-#   SERVICE_TIMEOUT               - Seconds to wait for each service to start (default: 60)
+#   SERVICE_TIMEOUT               - Seconds to wait for each service to start (default: 180)
 #   HUGGINGFACE_ACCESS_TOKEN      - HuggingFace token for gated models
 #
 # Logs are written to /var/log/nemotron/{asr,tts,llm}.log for external access.
@@ -53,11 +53,12 @@ ENABLE_LLM="${ENABLE_LLM:-true}"
 ENABLE_ASR="${ENABLE_ASR:-true}"
 ENABLE_TTS="${ENABLE_TTS:-true}"
 LLM_MODE="${LLM_MODE:-llamacpp-q8}"
-# vLLM needs ~15 minutes to load the model, llama.cpp only needs ~60s
+# vLLM needs ~15 minutes to load the model; llama.cpp + NeMo startup can
+# still exceed a minute on a cold start, so use a higher default there too.
 if [[ "$LLM_MODE" == "vllm" ]]; then
     SERVICE_TIMEOUT="${SERVICE_TIMEOUT:-900}"
 else
-    SERVICE_TIMEOUT="${SERVICE_TIMEOUT:-60}"
+    SERVICE_TIMEOUT="${SERVICE_TIMEOUT:-180}"
 fi
 LLAMA_PARALLEL="${LLAMA_PARALLEL:-1}"
 LLAMA_CTX_SIZE="${LLAMA_CTX_SIZE:-16384}"

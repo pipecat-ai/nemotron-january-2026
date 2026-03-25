@@ -26,15 +26,17 @@ Build time: 2-3 hours (builds PyTorch, NeMo, vLLM, llama.cpp from source for CUD
 ### 2. Start the Container
 
 ```bash
-# Start with default Q8 model (auto-detected from HuggingFace cache)
+# DGX Spark: start with default Q8 model (auto-detected from HuggingFace cache)
 ./scripts/nemotron.sh start
 
-# Or specify a model explicitly
-./scripts/nemotron.sh start --model ~/.cache/huggingface/hub/models--unsloth--Nemotron-3-Nano-30B-A3B-GGUF/snapshots/.../Q8_0.gguf
+# RTX 5090: use the Q4 Nemotron GGUF explicitly
+./scripts/nemotron.sh start --mode llamacpp-q4 --model ~/.cache/huggingface/hub/models--unsloth--Nemotron-3-Nano-30B-A3B-GGUF/snapshots/.../Nemotron-3-Nano-30B-A3B-Q4_K_M.gguf
 
 # Start with vLLM instead of llama.cpp (requires ~72GB VRAM)
 ./scripts/nemotron.sh start --mode vllm
 ```
+
+The local llama.cpp path in this repo is tested against `unsloth/Nemotron-3-Nano-30B-A3B-GGUF`. Other GGUFs may fail if the pinned llama.cpp commit does not yet support their architecture metadata.
 
 ### 3. Run the Voice Bot
 
@@ -307,6 +309,9 @@ Download LLM models (ASR and TTS are auto-downloaded on first run):
 # GGUF quantized models (Q8 and Q4 variants for llama.cpp)
 huggingface-cli download unsloth/Nemotron-3-Nano-30B-A3B-GGUF
 
+# Or download only the RTX 5090-friendly Q4 file
+huggingface-cli download unsloth/Nemotron-3-Nano-30B-A3B-GGUF --include "Nemotron-3-Nano-30B-A3B-Q4_K_M.gguf"
+
 # BF16 full precision (for vLLM)
 huggingface-cli download nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
 ```
@@ -321,6 +326,12 @@ For detailed architecture documentation including frame flow, protocols, and tim
 - The buffered LLM service uses single-slot operation (`--parallel 1`)
 - Ensure adequate VRAM for context size (default 16384 tokens)
 - Check for httpx connection issues if generation hangs
+- The pinned llama.cpp build is validated against `unsloth/Nemotron-3-Nano-30B-A3B-GGUF`; other GGUF architectures may fail to load
+
+**Startup fails before LLM launches**:
+- TTS and ASR start before the LLM; first startup can take about a minute while NeMo models warm up
+- `./scripts/nemotron.sh status` is not authoritative during startup; prefer foreground mode or `./scripts/nemotron.sh logs`
+- The default non-vLLM startup timeout is 180 seconds
 
 **vLLM takes 10-15 minutes to start**:
 - This is normal for first startup (model loading, kernel compilation)
@@ -329,3 +340,5 @@ For detailed architecture documentation including frame flow, protocols, and tim
 **vLLM DNS resolution issues**:
 - The container uses `--network=host` in vLLM mode to avoid DNS issues with HuggingFace
 
+**Docker sees the GPU but `--gpus all` still fails**:
+- This repo now launches containers with `--runtime=nvidia --gpus all` because some Docker setups only expose the GPU reliably with the explicit NVIDIA runtime

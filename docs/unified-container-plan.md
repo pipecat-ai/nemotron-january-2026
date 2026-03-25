@@ -97,7 +97,7 @@ All repositories are pinned to specific commit SHAs to ensure reproducible build
 |------------|--------|------------|------|-------|
 | PyTorch | main | `32cb1dac896fe212d77073a4a53fee840c13442f` | 2025-12-26 | CUDA 13.1 support |
 | torchaudio | main | `0764cfdedb769e63f3ab8b90bc06541a6a2c0b73` | 2025-12-20 | Compatible with PyTorch main |
-| NeMo | main | `644201898480ec8c8d0a637f0c773825509ac4dc` | 2025-12-23 | Includes MagpieTTS longform |
+| NeMo | main | `119593e7bf6e854a2136c3b48b804cae97657a0f` | 2026-01-26 | Includes Hindi tokenizer required by multilingual Magpie TTS |
 | vLLM | main | `bb80f69bc98cbf062bf030cb11185f7ba526e28a` | 2025-12-21 | Supports Nemotron-H relu2_no_mul |
 | llama.cpp | master | `c18428423018ed214c004e6ecaedb0cbdda06805` | 2025-12-24 | Tested on DGX Spark, avoids mxfp4 build issues |
 
@@ -187,7 +187,7 @@ The startup script supports flexible service selection. Any combination of LLM, 
 For Q8 quantized GGUF models - best balance of quality and VRAM:
 
 ```bash
-docker run -d --name nemotron --gpus all --ipc=host \
+docker run -d --name nemotron --runtime=nvidia --gpus all --ipc=host \
   -v $(pwd):/workspace \
   -v ~/.cache/huggingface:/hf_cache:ro \
   -p 8000:8000 -p 8001:8001 -p 8080:8080 \
@@ -208,7 +208,7 @@ docker run -d --name nemotron --gpus all --ipc=host \
 For Q4 quantized GGUF models - lower VRAM, slightly reduced quality:
 
 ```bash
-docker run -d --name nemotron --gpus all --ipc=host \
+docker run -d --name nemotron --runtime=nvidia --gpus all --ipc=host \
   -v $(pwd):/workspace \
   -v ~/.cache/huggingface:/hf_cache:ro \
   -p 8000:8000 -p 8001:8001 -p 8080:8080 \
@@ -229,7 +229,7 @@ docker run -d --name nemotron --gpus all --ipc=host \
 For BF16 full-precision inference - highest quality:
 
 ```bash
-docker run -d --name nemotron --gpus all --ipc=host \
+docker run -d --name nemotron --runtime=nvidia --gpus all --ipc=host \
   -v $(pwd):/workspace \
   -v $(pwd)/models:/workspace/models:ro \
   -p 8000:8000 -p 8001:8001 -p 8080:8080 \
@@ -458,7 +458,7 @@ For more control, you can run docker commands directly:
 
 ```bash
 # llama.cpp mode
-docker run -d --name nemotron --gpus all --ipc=host \
+docker run -d --name nemotron --runtime=nvidia --gpus all --ipc=host \
   -v $(pwd):/workspace \
   -v ~/.cache/huggingface:/root/.cache/huggingface \
   -p 8000:8000 -p 8001:8001 -p 8080:8080 \
@@ -468,7 +468,7 @@ docker run -d --name nemotron --gpus all --ipc=host \
   bash /workspace/scripts/start_unified.sh
 
 # vLLM mode
-docker run -d --name nemotron --gpus all --ipc=host \
+docker run -d --name nemotron --runtime=nvidia --gpus all --ipc=host \
   -v $(pwd):/workspace \
   -v ~/.cache/huggingface:/root/.cache/huggingface \
   -p 8000:8000 -p 8001:8001 -p 8080:8080 \
